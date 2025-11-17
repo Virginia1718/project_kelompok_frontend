@@ -1,43 +1,58 @@
-// src/components/Generations.jsx
+import React, { useState } from 'react';
+import { iptekData } from '../data/iptekData';
+import Header from './Header';
+import Footer from './Footer';
+import Home from './Home';
 
-import React from 'react';
-import { generations } from '../data/iptekData';
+const App = () => {
+  const [selectedInvention, setSelectedInvention] = useState(iptekData[0] || null); 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedGen, setSelectedGen] = useState(null);
 
-const GenerationButton = ({ id, name, onSelect, isSelected }) => (
-  <button 
-    onClick={() => onSelect(id)} 
-    // Menggunakan kelas kondisional untuk styling
-    className={`
-      mx-1 px-3 py-2 border rounded-md cursor-pointer text-sm transition duration-150 ease-in-out
-      ${isSelected 
-        ? 'bg-teal-600 text-white border-teal-700 font-semibold shadow-inner' // Active style
-        : 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200' // Default style
-      }
-    `}
-  >
-    {name}
-  </button>
-);
+  const handleSelectInvention = (invention) => {
+    setSelectedInvention(invention);
+  };
+  
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+  };
 
-const Generations = ({ onSelectGen, selectedGen }) => (
-  <div className="flex space-x-2">
-    <GenerationButton 
-        id={null} 
-        name="Semua" 
-        onSelect={onSelectGen} 
-        isSelected={selectedGen === null} 
-    />
-    
-    {generations.map(gen => (
-      <GenerationButton 
-        key={gen.id} 
-        id={gen.id} 
-        name={gen.name} 
-        onSelect={onSelectGen} 
-        isSelected={selectedGen === gen.id} 
+  const handleSelectGen = (genId) => {
+    setSelectedGen(genId);
+  };
+
+  let filteredData = iptekData.filter(item =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  if (selectedGen !== null) {
+    filteredData = filteredData.filter(item => item.generation === selectedGen);
+  }
+
+  if (filteredData.length > 0 && (!selectedInvention || !filteredData.find(item => item.id === selectedInvention.id))) {
+    setSelectedInvention(filteredData[0]);
+  } else if (filteredData.length === 0) {
+    if (selectedInvention !== null) setSelectedInvention(null);
+  }
+
+  // Mengubah div utama menjadi layout flex kolom
+  return (
+    <div className="font-sans min-h-screen flex flex-col"> 
+      <Header 
+        onSelectGen={handleSelectGen} 
+        selectedGen={selectedGen} 
       />
-    ))}
-  </div>
-);
+      <main className="flex-1 p-5 lg:p-10">
+        <Home
+          data={filteredData}
+          onSelect={handleSelectInvention}
+          onSearch={handleSearch}
+          selectedInvention={selectedInvention}
+        />
+      </main>
+      <Footer />
+    </div>
+  );
+};
 
-export default Generations;
+export default App;
